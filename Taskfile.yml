@@ -1,5 +1,10 @@
 version: '3'
 
+silent: true
+
+vars:
+  RUN: '{{.ROOT_DIR}}/scripts/run.sh'
+
 includes:
   k3d:
     taskfile: ./Taskfiles/k3d.Taskfile.yml
@@ -11,9 +16,18 @@ includes:
     dir: .
 
 tasks:
+  default:
+    desc: Pick a task to run from an interactive menu.
+    interactive: true
+    cmds:
+      - |
+        TASK=$(task --list --silent | grep -v '^default$' | gum filter --placeholder "Pick a task...") || exit 0
+        task "$TASK"
+
   cluster:init:
-    desc: configure all required cluster components
+    desc: Create the cluster and bring Flux up to date with this repo.
     cmds:
       - task: k3d:up
       - task: flux:up
       - task: flux:sync
+      - gum style --border rounded --border-foreground 2 --padding "0 2" --bold "Cluster is ready"

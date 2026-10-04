@@ -1,12 +1,14 @@
 version: '3'
 
+silent: true
+
 vars:
   CLUSTER_NAME: '{{.CLUSTER_NAME | default "cluster"}}'
   CLUSTER_SERVER_SCALE: '{{.CLUSTER_SERVER_SCALE | default "1"}}'
 
 tasks:
   verify:
-    desc: Check whether a cluster exist
+    desc: Print the cluster state as a machine readable status code.
     cmds:
       - |
         CLUSTERS=$(k3d cluster list)
@@ -19,34 +21,35 @@ tasks:
         fi
 
   up:
-    desc: Create a cluster in K3D
+    desc: Create or start the k3d cluster so it is running.
     cmds:
       - |
         CLUSTER_STATUS=$(task k3d:verify --silent)
-        echo $CLUSTER_STATUS
         if [ "$CLUSTER_STATUS" = "ERR:CLUSTER_NOT_CREATED" ]; then
           task k3d:create
         elif [ "$CLUSTER_STATUS" = "ERR:CLUSTER_NOT_STARTED" ]; then
           task k3d:start
+        else
+          gum log --level info "Cluster {{.CLUSTER_NAME}} is already running"
         fi
-      - echo K3D - cluster is up!
 
   create:
+    desc: Create a new k3d cluster from k3d.yaml.
     cmds:
-      - k3d cluster create "{{.CLUSTER_NAME}}" --config k3d.yaml
+      - '{{.RUN}} "Creating cluster {{.CLUSTER_NAME}}" k3d cluster create "{{.CLUSTER_NAME}}" --config k3d.yaml'
 
   start:
-    desc: start cluster
+    desc: Start the stopped k3d cluster.
     cmds:
-      - k3d cluster start "{{.CLUSTER_NAME}}"
-      - echo "Cluster is started"
+      - '{{.RUN}} "Starting cluster {{.CLUSTER_NAME}}" k3d cluster start "{{.CLUSTER_NAME}}"'
 
   stop:
-    desc: destroy cluster
+    desc: Stop the k3d cluster without deleting it.
     cmds:
-      - k3d cluster stop "{{.CLUSTER_NAME}}"
+      - '{{.RUN}} "Stopping cluster {{.CLUSTER_NAME}}" k3d cluster stop "{{.CLUSTER_NAME}}"'
 
   destroy:
-    desc: destroy cluster
+    desc: Delete the k3d cluster and all its data.
+    prompt: This deletes cluster {{.CLUSTER_NAME}} and all its data, continue?
     cmds:
-      - k3d cluster delete "{{.CLUSTER_NAME}}"
+      - '{{.RUN}} "Deleting cluster {{.CLUSTER_NAME}}" k3d cluster delete "{{.CLUSTER_NAME}}"'

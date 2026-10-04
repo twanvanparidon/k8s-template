@@ -1,8 +1,10 @@
 version: '3'
 
+silent: true
+
 tasks:
   verify:
-    desc: verify flux status
+    desc: Print the Flux state as a machine readable status code.
     cmds:
       - |
         if ! flux check > /dev/null 2>&1; then
@@ -15,9 +17,9 @@ tasks:
             echo "OK:IN_SYNC"
           fi
         fi
- 
+
   up:
-    desc: get flux up and running
+    desc: Install Flux and apply the cluster config when needed.
     cmds:
       - |
         FLUX_STATUS=$(task flux:verify --silent 2>/dev/null) || true
@@ -26,28 +28,34 @@ tasks:
           task flux:apply
         elif [ "$FLUX_STATUS" = "ERR:OUT_SYNC" ]; then
           task flux:apply
+        else
+          gum log --level info "Flux is installed and in sync"
         fi
- 
+
   install:
-    desc: install flux
+    desc: Install the Flux controllers into the cluster.
     cmds:
-      - flux install
-  
+      - '{{.RUN}} "Installing Flux" flux install'
+
   apply:
-    desc: apply cluster files
+    desc: Apply the manifests in clusters/dev to the cluster.
     cmds:
-      - kubectl apply -f ./clusters/dev
- 
+      - '{{.RUN}} "Applying cluster config" kubectl apply -f ./clusters/dev'
+
   sync:
-    desc: sync flux resources
+    desc: Push this repo as an OCI artifact and reconcile Flux.
     vars:
       ARTIFACT: oci://localhost:5050/manifests:dev
-    status:
-      - flux diff artifact {{.ARTIFACT}} --path=. > /dev/null 2>&1
     cmds:
-      - >
-        flux push artifact {{.ARTIFACT}}
-        --path=.
-        --source=local
-        --revision="$(git describe --always --dirty)"
-      - flux reconcile kustomization dev --with-source
+      - |
+        set -e
+        if flux diff artifact {{.ARTIFACT}} --path=. > /dev/null 2>&1; then
+          gum log --level info "Manifests are already in sync with {{.ARTIFACT}}"
+          exit 0
+        fi
+        {{.RUN}} "Pushing manifests artifact" \
+          flux push artifact {{.ARTIFACT}} \
+          --path=. \
+          --source=local \
+          --revision="$(git describe --always --dirty)"
+        {{.RUN}} "Reconciling Flux" flux reconcile kustomization dev --with-source
