@@ -1,0 +1,17 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  values:
+    deployment:
+      replicas: 1
+    # No load balancer in k3d, k3d.yaml maps these node ports to the host
+    service:
+      type: NodePort
+    ports:
+      web:
+        nodePort: 30080
+      websecure:
+        nodePort: 30443

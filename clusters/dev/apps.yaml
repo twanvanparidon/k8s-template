@@ -4,6 +4,8 @@ metadata:
   name: nginx-test
   namespace: flux-system
 spec:
+  dependsOn:
+    - name: infra-configs
   interval: 30m0s
   path: ./apps/dev/
   prune: true

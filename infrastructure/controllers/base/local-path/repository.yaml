@@ -1,0 +1,13 @@
+# No published Helm repo, the chart lives in the upstream Git repo
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: local-path-provisioner
+  namespace: local-path-storage
+spec:
+  interval: 24h
+  url: https://github.com/rancher/local-path-provisioner
+  ref:
+    tag: v0.0.37
+  sparseCheckout:
+    - deploy/chart

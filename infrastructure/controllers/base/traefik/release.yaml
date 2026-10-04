@@ -1,0 +1,42 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: traefik
+      version: "41.x"
+      sourceRef:
+        kind: HelmRepository
+        name: traefik
+      interval: 12h
+  install:
+    # Gateway API CRDs come from upstream (see clusters/*/infrastructure.yaml),
+    # Traefik's own CRDs (IngressRoute, Middleware, Hub) are not used
+    crds: Skip
+    remediation:
+      retries: 3
+  upgrade:
+    crds: Skip
+    remediation:
+      retries: 3
+      remediateLastFailure: true
+  values:
+    providers:
+      kubernetesGateway:
+        enabled: true
+      kubernetesIngress:
+        enabled: false
+      kubernetesCRD:
+        enabled: false
+    ingressClass:
+      enabled: false
+    # Only the GatewayClass comes from the chart, the Gateway lives in infrastructure/configs
+    gatewayClass:
+      enabled: true
+      name: traefik
+    gateway:
+      enabled: false

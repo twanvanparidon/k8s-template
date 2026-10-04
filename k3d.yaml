@@ -10,6 +10,12 @@ registries:
     name: registry.localhost
     host: "127.0.0.1"
     hostPort: "5050" # Mac already uses port 5000
+ports:
+  # Traefik NodePorts, see infrastructure/controllers/dev/traefik-values.yaml
+  - port: 8080:30080
+    nodeFilters: [server:0:direct]
+  - port: 8443:30443
+    nodeFilters: [server:0:direct]
 options:
   k3d:
     disableLoadbalancer: true

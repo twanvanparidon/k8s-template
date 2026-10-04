@@ -24,3 +24,8 @@ spec:
     crds:
       enabled: true
       keep: true
+    # Needs the Gateway API CRDs at startup, hence infra-controllers depends on gateway-api-crds
+    config:
+      apiVersion: controller.config.cert-manager.io/v1alpha1
+      kind: ControllerConfiguration
+      enableGatewayAPI: true

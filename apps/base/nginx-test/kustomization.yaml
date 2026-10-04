@@ -3,3 +3,5 @@ kind: Kustomization
 
 resources:
 - depl-nginx.yaml
+- svc-nginx.yaml
+- route-nginx.yaml
