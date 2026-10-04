@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.18.4/.schema/devbox.schema.json",
+  "packages": [
+    "k3d@5.9.0",
+    "kubectl@1.36.3",
+    "kustomize@5.8.1",
+    "helmfile@1.7.4",
+    "fluxcd@2.9.4",
+    "kubeseal@0.38.4",
+    "kube-linter@0.8.3",
+    "go-task@3.53.1",
+    "gum@2.0.0"
+  ],
+  "shell": {
+    "init_hook": [],
+    "scripts": {
+      "test": [
+        "which docker # Docker is a hard requirement for k3d"
+      ]
+    }
+  }
+}

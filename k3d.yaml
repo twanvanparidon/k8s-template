@@ -1,0 +1,26 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: cluster-name # Is replaced by taskfile
+servers: 1
+agents: 0
+image: rancher/k3s:v1.36.4-k3s1 # Flux 2.9 needs Kubernetes >= 1.33
+registries:
+  create:
+    name: registry.localhost
+    host: "127.0.0.1"
+    hostPort: "5050" # Mac already uses port 5000
+options:
+  k3d:
+    disableLoadbalancer: true
+  k3s:
+    extraArgs:
+      # Bundled add-ons
+      - arg: --disable=traefik
+        nodeFilters: [server:*]
+      - arg: --disable=servicelb
+        nodeFilters: [server:*]
+      - arg: --disable=metrics-server
+        nodeFilters: [server:*]
+      - arg: --disable=local-storage
+        nodeFilters: [server:*]

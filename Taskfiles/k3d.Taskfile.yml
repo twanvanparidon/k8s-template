@@ -1,0 +1,52 @@
+version: '3'
+
+vars:
+  CLUSTER_NAME: '{{.CLUSTER_NAME | default "cluster"}}'
+  CLUSTER_SERVER_SCALE: '{{.CLUSTER_SERVER_SCALE | default "1"}}'
+
+tasks:
+  verify:
+    desc: Check whether a cluster exist
+    cmds:
+      - |
+        CLUSTERS=$(k3d cluster list)
+        if ! echo "$CLUSTERS" | grep -qE "^{{.CLUSTER_NAME}}[[:space:]]"; then
+          echo "ERR:CLUSTER_NOT_CREATED"
+        elif ! echo "$CLUSTERS" | grep -qE "^{{.CLUSTER_NAME}}[[:space:]]+{{.CLUSTER_SERVER_SCALE}}/{{.CLUSTER_SERVER_SCALE}}[[:space:]]"; then
+          echo "ERR:CLUSTER_NOT_STARTED"
+        else
+          echo "OK:CLUSTER_READY"
+        fi
+
+  up:
+    desc: Create a cluster in K3D
+    cmds:
+      - |
+        CLUSTER_STATUS=$(task k3d:verify --silent)
+        echo $CLUSTER_STATUS
+        if [ "$CLUSTER_STATUS" = "ERR:CLUSTER_NOT_CREATED" ]; then
+          task k3d:create
+        elif [ "$CLUSTER_STATUS" = "ERR:CLUSTER_NOT_STARTED" ]; then
+          task k3d:start
+        fi
+      - echo K3D - cluster is up!
+
+  create:
+    cmds:
+      - k3d cluster create "{{.CLUSTER_NAME}}" --config k3d.yaml
+
+  start:
+    desc: start cluster
+    cmds:
+      - k3d cluster start "{{.CLUSTER_NAME}}"
+      - echo "Cluster is started"
+
+  stop:
+    desc: destroy cluster
+    cmds:
+      - k3d cluster stop "{{.CLUSTER_NAME}}"
+
+  destroy:
+    desc: destroy cluster
+    cmds:
+      - k3d cluster delete "{{.CLUSTER_NAME}}"

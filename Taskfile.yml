@@ -1,0 +1,19 @@
+version: '3'
+
+includes:
+  k3d:
+    taskfile: ./Taskfiles/k3d.Taskfile.yml
+    dir: .
+    vars:
+      CLUSTER_NAME: "cluster-name"
+  flux:
+    taskfile: ./Taskfiles/flux.Taskfile.yml
+    dir: .
+
+tasks:
+  cluster:init:
+    desc: configure all required cluster components
+    cmds:
+      - task: k3d:up
+      - task: flux:up
+      - task: flux:sync

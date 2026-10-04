@@ -1,0 +1,38 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS
+.task/
+.devbox/
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+*~
+
+# IDEs
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.iml
+*.swp
+*.swo
+*.sublime-workspace
+
+# Logs & temp
+logs/
+*.log
+*.tmp
+*.bak
+.task
+
+# Build
+build/
+dist/
+out/

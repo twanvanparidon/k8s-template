@@ -1,0 +1,53 @@
+version: '3'
+
+tasks:
+  verify:
+    desc: verify flux status
+    cmds:
+      - |
+        if ! flux check > /dev/null 2>&1; then
+          echo "ERR:CHECK_FAILED"
+        else
+          LINES=$(kubectl diff -f ./clusters/dev | wc -l | tr -d ' ')
+          if [ "$LINES" -gt 0 ]; then
+            echo "ERR:OUT_SYNC"
+          else
+            echo "OK:IN_SYNC"
+          fi
+        fi
+ 
+  up:
+    desc: get flux up and running
+    cmds:
+      - |
+        FLUX_STATUS=$(task flux:verify --silent 2>/dev/null) || true
+        if [ "$FLUX_STATUS" = "ERR:CHECK_FAILED" ]; then
+          task flux:install
+          task flux:apply
+        elif [ "$FLUX_STATUS" = "ERR:OUT_SYNC" ]; then
+          task flux:apply
+        fi
+ 
+  install:
+    desc: install flux
+    cmds:
+      - flux install
+  
+  apply:
+    desc: apply cluster files
+    cmds:
+      - kubectl apply -f ./clusters/dev
+ 
+  sync:
+    desc: sync flux resources
+    vars:
+      ARTIFACT: oci://localhost:5050/manifests:dev
+    status:
+      - flux diff artifact {{.ARTIFACT}} --path=. > /dev/null 2>&1
+    cmds:
+      - >
+        flux push artifact {{.ARTIFACT}}
+        --path=.
+        --source=local
+        --revision="$(git describe --always --dirty)"
+      - flux reconcile kustomization dev --with-source

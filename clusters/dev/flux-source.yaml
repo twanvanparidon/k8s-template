@@ -1,0 +1,24 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: manifests
+  namespace: flux-system
+spec:
+  url: oci://registry.localhost:5000/manifests
+  ref:
+    tag: dev
+  insecure: true
+  interval: 1m
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: dev
+  namespace: flux-system
+spec:
+  sourceRef:
+    kind: OCIRepository
+    name: manifests
+  path: ./clusters/dev
+  prune: true
+  interval: 10m
