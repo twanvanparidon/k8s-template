@@ -42,20 +42,35 @@ tasks:
     cmds:
       - '{{.RUN}} "Applying cluster config" kubectl apply -f ./clusters/dev'
 
+  watch:
+    desc: Run sync again whenever a manifest changes.
+    watch: true
+    # Always sync on change, sync itself skips when the artifact is unchanged
+    method: none
+    sources:
+      - apps/**/*.yaml
+      - clusters/**/*.yaml
+      - infrastructure/**/*.yaml
+    cmds:
+      - '{{.ROOT_DIR}}/scripts/serial.sh flux-sync task flux:sync'
+
   sync:
     desc: Push this repo as an OCI artifact and reconcile Flux.
     vars:
       ARTIFACT: oci://localhost:5050/manifests:dev
+      # Only the manifest folders go into the artifact (gitignore format)
+      IGNORE: '/*,!/apps/,!/clusters/,!/infrastructure/'
     cmds:
       - |
         set -e
-        if flux diff artifact {{.ARTIFACT}} --path=. > /dev/null 2>&1; then
+        if flux diff artifact {{.ARTIFACT}} --path=. --ignore-paths='{{.IGNORE}}' > /dev/null 2>&1; then
           gum log --level info "Manifests are already in sync with {{.ARTIFACT}}"
           exit 0
         fi
         {{.RUN}} "Pushing manifests artifact" \
           flux push artifact {{.ARTIFACT}} \
           --path=. \
+          --ignore-paths='{{.IGNORE}}' \
           --source=local \
           --revision="$(git describe --always --dirty)"
         {{.RUN}} "Reconciling Flux" flux reconcile kustomization dev --with-source
