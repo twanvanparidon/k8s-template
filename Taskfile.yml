@@ -10,7 +10,7 @@ includes:
     taskfile: ./.taskfiles/k3d.yml
     dir: .
     vars:
-      CLUSTER_NAME: "cluster-name"
+      CLUSTER_NAME: dev # k3d names the kube context k3d-dev
   flux:
     taskfile: ./.taskfiles/flux.yml
     dir: .

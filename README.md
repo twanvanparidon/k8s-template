@@ -37,7 +37,7 @@ Apps are served over plain HTTP: browsers treat `*.localhost` as a secure contex
 | `clusters/dev/` | Flux entry point: the source and the Kustomizations below, in dependency order |
 | `infrastructure/controllers/` | Helm releases for the cluster services; `base/` per controller, `dev/` picks and patches them |
 | `infrastructure/configs/` | Resources that need the controllers first, such as the Gateway |
-| `apps/` | Your workloads; `base/` per app, `dev/` and `prod/` overlays |
+| `apps/` | Your workloads; `base/` per app, `dev/` overlays per cluster |
 | `k3d.yaml` | Cluster config: k3s version, local registry, port mappings |
 | `.taskfiles/` | Task includes: `k3d`, `flux`, `sops` and `k8s-lint` |
 
