@@ -6,8 +6,25 @@ name: k8s-lint
 
 on:
   pull_request:
+    # Only what feeds the rendered manifests or the lint itself.
+    paths:
+      - "apps/**"
+      - "clusters/**"
+      - "infrastructure/**"
+      - ".kube-linter.yaml"
+      - "Taskfile.yml"
+      - ".taskfiles/k8s-lint.yml"
+      - ".github/workflows/k8s-lint.yml"
   push:
     branches: [main]
+    paths:
+      - "apps/**"
+      - "clusters/**"
+      - "infrastructure/**"
+      - ".kube-linter.yaml"
+      - "Taskfile.yml"
+      - ".taskfiles/k8s-lint.yml"
+      - ".github/workflows/k8s-lint.yml"
 
 permissions:
   contents: read
