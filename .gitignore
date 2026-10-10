@@ -36,3 +36,5 @@ logs/
 build/
 dist/
 out/
+# k8s:lint output
+rendered/

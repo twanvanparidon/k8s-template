@@ -9,7 +9,8 @@
     "kubeseal@0.38.4",
     "kube-linter@0.8.3",
     "go-task@3.53.1",
-    "gum@2.0.0"
+    "gum@2.0.0",
+    "kubeconform@0.8.0"
   ],
   "shell": {
     "init_hook": [],

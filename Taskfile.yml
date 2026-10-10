@@ -7,13 +7,19 @@ vars:
 
 includes:
   k3d:
-    taskfile: ./Taskfiles/k3d.Taskfile.yml
+    taskfile: ./.taskfiles/k3d.yml
     dir: .
     vars:
       CLUSTER_NAME: "cluster-name"
   flux:
-    taskfile: ./Taskfiles/flux.Taskfile.yml
+    taskfile: ./.taskfiles/flux.yml
     dir: .
+  # From ci-runner pipelines/k8s/lint; CI runs the same tasks.
+  k8s:lint:
+    taskfile: ./.taskfiles/k8s-lint.yml
+    dir: .
+    vars:
+      K8S_DIR: .
 
 tasks:
   default:
@@ -23,6 +29,13 @@ tasks:
       - |
         TASK=$(task --list --silent | grep -v '^default$' | gum filter --placeholder "Pick a task...") || exit 0
         task "$TASK"
+
+  lint:
+    desc: Run the k8s:lint steps CI runs, with live output.
+    cmds:
+      - '{{.RUN}} "Rendering kustomizations" task k8s:lint:render'
+      - '{{.RUN}} "Checking schemas" task k8s:lint:schema'
+      - '{{.RUN}} "Linting manifests" task k8s:lint:kube-linter'
 
   cluster:init:
     desc: Create the cluster and bring Flux up to date with this repo.
