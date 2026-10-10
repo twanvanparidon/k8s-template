@@ -33,7 +33,7 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/twanvanparidon/ci-runner/k8s:1.4.0@sha256:2ee36083e002aa33e84ad26c5336dee6bf45e2ce7d0ca130dd1ddc4ae3908611
+      image: ghcr.io/twanvanparidon/ci-runner/k8s:1.4.2@sha256:9028d7d0f7226dabb58ccf485eab00ce3a0e4274b7541abd55468f59b9a8b13c
       # Run as the hosted runner's user (owns the workspace) instead of root.
       options: --user 1001:1001
     steps:
