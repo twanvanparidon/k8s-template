@@ -1,8 +1,0 @@
-apiVersion: source.toolkit.fluxcd.io/v1
-kind: HelmRepository
-metadata:
-  name: sealed-secrets
-  namespace: kube-system
-spec:
-  interval: 24h
-  url: https://bitnami.github.io/sealed-secrets

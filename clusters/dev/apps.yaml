@@ -9,6 +9,11 @@ spec:
   interval: 30m0s
   path: ./apps/dev/
   prune: true
+  # Decrypts *.sops.yaml with the age key from `task sops:secret`
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-age
   retryInterval: 2m0s
   sourceRef:
     kind: OCIRepository

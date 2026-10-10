@@ -3,7 +3,6 @@ kind: Kustomization
 resources:
   - ../base/traefik
   - ../base/local-path
-  - ../base/sealed-secrets
   - ../base/metrics-server
 patches:
   - path: traefik-values.yaml

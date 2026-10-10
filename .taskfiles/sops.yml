@@ -1,0 +1,38 @@
+version: '3'
+
+silent: true
+
+vars:
+  # Set by devbox; sops reads the same file to decrypt.
+  KEY_FILE: '{{.SOPS_AGE_KEY_FILE | default (printf "%s/.config/sops/age/keys.txt" .HOME)}}'
+
+tasks:
+  init:
+    desc: Create the age key used to encrypt secrets, if there is none yet.
+    status:
+      - test -f "{{.KEY_FILE}}"
+    cmds:
+      - mkdir -p "$(dirname "{{.KEY_FILE}}")"
+      - age-keygen -o "{{.KEY_FILE}}" 2>/dev/null
+      - gum log --level info "Created age key {{.KEY_FILE}}, back it up to keep your secrets readable"
+
+  secret:
+    desc: Give Flux the age key so it can decrypt secrets in the cluster.
+    deps: [init]
+    cmds:
+      - |
+        {{.RUN}} "Loading age key into Flux" sh -c 'kubectl create secret generic sops-age -n flux-system \
+          --from-file=age.agekey="{{.KEY_FILE}}" --dry-run=client -o yaml | kubectl apply -f -'
+
+  encrypt:
+    desc: Encrypt the data of a Secret manifest in place (FILE=path/to/secret.sops.yaml).
+    deps: [init]
+    requires:
+      vars: [FILE]
+    cmds:
+      - |
+        sops encrypt --in-place \
+          --age "$(age-keygen -y "{{.KEY_FILE}}")" \
+          --encrypted-regex '^(data|stringData)$' \
+          "{{.FILE}}"
+      - gum log --level info "Encrypted {{.FILE}}, edit it with 'sops edit {{.FILE}}'"

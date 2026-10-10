@@ -14,6 +14,9 @@ includes:
   flux:
     taskfile: ./.taskfiles/flux.yml
     dir: .
+  sops:
+    taskfile: ./.taskfiles/sops.yml
+    dir: .
   # From ci-runner pipelines/k8s/lint; CI runs the same tasks.
   k8s:lint:
     taskfile: ./.taskfiles/k8s-lint.yml
@@ -42,5 +45,6 @@ tasks:
     cmds:
       - task: k3d:up
       - task: flux:up
+      - task: sops:secret
       - task: flux:sync
       - gum style --border rounded --border-foreground 2 --padding "0 2" --bold "Cluster is ready"
