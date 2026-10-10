@@ -3,7 +3,7 @@ version: '3'
 silent: true
 
 vars:
-  CLUSTER_NAME: '{{.CLUSTER_NAME | default "cluster"}}'
+  CLUSTER_NAME: '{{.CLUSTER_NAME | default "dev"}}'
   CLUSTER_SERVER_SCALE: '{{.CLUSTER_SERVER_SCALE | default "1"}}'
 
 tasks:

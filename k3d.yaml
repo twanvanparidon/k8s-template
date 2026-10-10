@@ -1,7 +1,7 @@
 apiVersion: k3d.io/v1alpha5
 kind: Simple
 metadata:
-  name: cluster-name # Is replaced by taskfile
+  name: dev # Overridden by CLUSTER_NAME in Taskfile.yml
 servers: 1
 agents: 0
 image: rancher/k3s:v1.36.4-k3s1 # Flux 2.9 needs Kubernetes >= 1.33
