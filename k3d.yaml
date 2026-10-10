@@ -4,7 +4,7 @@ metadata:
   name: dev # Overridden by CLUSTER_NAME in Taskfile.yml
 servers: 1
 agents: 0
-image: rancher/k3s:v1.36.4-k3s1 # Flux 2.9 needs Kubernetes >= 1.33
+image: rancher/k3s:v1.37.1-k3s1 # Flux 2.9 needs Kubernetes >= 1.33
 registries:
   create:
     name: registry.localhost
