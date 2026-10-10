@@ -20,6 +20,7 @@ tasks:
       OUT: '{{.OUT | default "rendered"}}'
     cmds:
       - |
+        set -o pipefail # a failing kustomize build must not hide behind yq
         rm -rf "{{.OUT}}"
         count=0 failed=0
         list="$(mktemp)"
@@ -31,7 +32,8 @@ tasks:
           count=$((count + 1))
           target="{{.OUT}}/${dir#./}.yaml"
           mkdir -p "$(dirname "$target")"
-          if kustomize build "$dir" > "$target"; then echo "ok    $dir"; else echo "FAIL  $dir" >&2; failed=$((failed + 1)); fi
+          # del(.sops): SOPS metadata on encrypted Secrets, which Flux strips when decrypting.
+          if kustomize build "$dir" | yq 'del(.sops)' > "$target"; then echo "ok    $dir"; else echo "FAIL  $dir" >&2; failed=$((failed + 1)); fi
         done < "$list"
         rm -f "$list"
         [ "$count" -gt 0 ] || { echo "no kustomizations found under {{.K8S_DIR}}" >&2; exit 1; }

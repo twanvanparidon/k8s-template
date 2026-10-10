@@ -7,11 +7,10 @@ spec:
   values:
     deployment:
       replicas: 1
-    # No load balancer in k3d, k3d.yaml maps these node ports to the host
+    # No load balancer in k3d, k3d.yaml maps this node port to the host.
+    # HTTP only: browsers treat *.localhost as a secure context.
     service:
       type: NodePort
     ports:
       web:
         nodePort: 30080
-      websecure:
-        nodePort: 30443

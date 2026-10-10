@@ -6,7 +6,7 @@ metadata:
 spec:
   gatewayClassName: traefik
   listeners:
-    # Port must match a Traefik entrypoint port (web: 8000, websecure: 8443)
+    # Port must match a Traefik entrypoint port (web: 8000)
     - name: web
       protocol: HTTP
       port: 8000
