@@ -1,0 +1,61 @@
+# Validate kustomize manifests: render, schema check and lint what gets deployed.
+# Image: ci-runner k8s (CI) or devbox (locally). From ci-runner pipelines/k8s/lint, included
+# as `k8s:lint`; run `task k8s:lint` (all) or one step: k8s:lint:render, :schema, :kube-linter.
+# K8S_DIR (default k8s) holds the kustomizations, OUT (default rendered) the output.
+# Variables are per task: included Taskfiles share file-level vars.
+version: "3"
+
+tasks:
+  default:
+    desc: Render, schema check and lint
+    cmds:
+      - task: render
+      - task: schema
+      - task: kube-linter
+
+  render:
+    desc: Render every kustomization under K8S_DIR to OUT; components are skipped
+    vars:
+      K8S_DIR: '{{.K8S_DIR | default "k8s"}}'
+      OUT: '{{.OUT | default "rendered"}}'
+    cmds:
+      - |
+        rm -rf "{{.OUT}}"
+        count=0 failed=0
+        list="$(mktemp)"
+        find "{{.K8S_DIR}}" -type f \( -name kustomization.yaml -o -name kustomization.yml -o -name Kustomization \) \
+          -not -path '*/.git/*' | sort > "$list"
+        while IFS= read -r file; do
+          grep -q '^kind: Component' "$file" && continue
+          dir="$(dirname "$file")"
+          count=$((count + 1))
+          target="{{.OUT}}/${dir#./}.yaml"
+          mkdir -p "$(dirname "$target")"
+          if kustomize build "$dir" > "$target"; then echo "ok    $dir"; else echo "FAIL  $dir" >&2; failed=$((failed + 1)); fi
+        done < "$list"
+        rm -f "$list"
+        [ "$count" -gt 0 ] || { echo "no kustomizations found under {{.K8S_DIR}}" >&2; exit 1; }
+        echo "$count built, $failed failed"
+        [ "$failed" -eq 0 ]
+
+  schema:
+    desc: kubeconform -strict on OUT; CRD schemas from the community catalog
+    vars:
+      OUT: '{{.OUT | default "rendered"}}'
+    cmds:
+      - >
+        kubeconform -strict -summary -ignore-missing-schemas
+        -schema-location default
+        -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{"{{"}}.Group{{"}}"}}/{{"{{"}}.ResourceKind{{"}}"}}_{{"{{"}}.ResourceAPIVersion{{"}}"}}.json'
+        "{{.OUT}}"
+
+  kube-linter:
+    desc: kube-linter on OUT, with K8S_DIR/.kube-linter.yaml when present
+    vars:
+      K8S_DIR: '{{.K8S_DIR | default "k8s"}}'
+      OUT: '{{.OUT | default "rendered"}}'
+    cmds:
+      - |
+        config="{{.K8S_DIR}}/.kube-linter.yaml"
+        if [ -f "$config" ]; then set -- --config "$config"; fi
+        kube-linter lint "$@" "{{.OUT}}"

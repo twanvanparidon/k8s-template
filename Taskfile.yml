@@ -7,13 +7,19 @@ vars:
 
 includes:
   k3d:
-    taskfile: ./Taskfiles/k3d.Taskfile.yml
+    taskfile: ./.taskfiles/k3d.yml
     dir: .
     vars:
       CLUSTER_NAME: "cluster-name"
   flux:
-    taskfile: ./Taskfiles/flux.Taskfile.yml
+    taskfile: ./.taskfiles/flux.yml
     dir: .
+  # From ci-runner pipelines/k8s/lint; CI runs the same tasks.
+  k8s:lint:
+    taskfile: ./.taskfiles/k8s-lint.yml
+    dir: .
+    vars:
+      K8S_DIR: .
 
 tasks:
   default:
