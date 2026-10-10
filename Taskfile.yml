@@ -30,6 +30,13 @@ tasks:
         TASK=$(task --list --silent | grep -v '^default$' | gum filter --placeholder "Pick a task...") || exit 0
         task "$TASK"
 
+  lint:
+    desc: Run the k8s:lint steps CI runs, with live output.
+    cmds:
+      - '{{.RUN}} "Rendering kustomizations" task k8s:lint:render'
+      - '{{.RUN}} "Checking schemas" task k8s:lint:schema'
+      - '{{.RUN}} "Linting manifests" task k8s:lint:kube-linter'
+
   cluster:init:
     desc: Create the cluster and bring Flux up to date with this repo.
     cmds:
