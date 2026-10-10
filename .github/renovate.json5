@@ -1,0 +1,70 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["config:recommended", "helpers:pinGitHubActionDigests"],
+  timezone: "Europe/Amsterdam",
+  schedule: ["before 9am on monday"],
+  // HelmRelease charts, HelmRepository and GitRepository refs; by default Flux only
+  // reads gotk-components.yaml.
+  flux: {
+    managerFilePatterns: ["/^(apps|clusters|infrastructure)/.+\\.ya?ml$/"],
+  },
+  // Container images in the manifests; this manager has no default file pattern.
+  kubernetes: {
+    managerFilePatterns: ["/^(apps|infrastructure)/.+\\.ya?ml$/"],
+  },
+  customManagers: [
+    {
+      // The k3s image in the k3d config, e.g. rancher/k3s:v1.36.4-k3s1.
+      customType: "regex",
+      managerFilePatterns: ["/^k3d\\.yaml$/"],
+      matchStrings: ["image: (?<depName>rancher/k3s):(?<currentValue>v[^\\s]+)"],
+      datasourceTemplate: "docker",
+      versioningTemplate: "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-k3s(?<build>\\d+)$",
+    },
+    {
+      // ci-runner images in the workflows, with or without a digest.
+      customType: "regex",
+      managerFilePatterns: ["/^\\.github/workflows/.+\\.ya?ml$/"],
+      matchStrings: ["(?<depName>ghcr\\.io/twanvanparidon/ci-runner/[a-z0-9-]+):(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:@(?<currentDigest>sha256:[a-f0-9]+))?"],
+      datasourceTemplate: "docker",
+      versioningTemplate: "semver",
+    },
+  ],
+  packageRules: [
+    {
+      // The OCI artifact `task flux:sync` pushes to the local k3d registry.
+      matchPackageNames: ["registry.localhost:5000/**"],
+      enabled: false,
+    },
+    {
+      // The custom manager above owns these pins; don't update them twice.
+      matchManagers: ["github-actions"],
+      matchDatasources: ["docker"],
+      matchPackageNames: ["ghcr.io/twanvanparidon/ci-runner/**"],
+      enabled: false,
+    },
+    {
+      matchManagers: ["github-actions"],
+      matchDepTypes: ["action"],
+      groupName: "github actions",
+    },
+    {
+      matchManagers: ["flux"],
+      groupName: "flux",
+    },
+    {
+      matchManagers: ["devbox"],
+      groupName: "devbox",
+    },
+    {
+      // Gateway API CRDs must match what Traefik supports; check its release notes first.
+      matchPackageNames: ["kubernetes-sigs/gateway-api"],
+      prBodyNotes: ["Check that the Traefik chart supports this Gateway API version."],
+    },
+    {
+      // Our own CI images: at any time, like in ci-runner.
+      matchPackageNames: ["ghcr.io/twanvanparidon/ci-runner/**"],
+      schedule: ["at any time"],
+    },
+  ],
+}
